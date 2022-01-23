@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  auditor:
+    build: Auditor/
+    container_name: auditor
+    # volumes:
+    #   - ./Auditor:/src/app #Para usar em desenvolvimento
+
+  jogador:
+    build: Jogador/
+    container_name: jogador
