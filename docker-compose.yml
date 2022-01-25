@@ -4,9 +4,15 @@ services:
   auditor:
     build: Auditor/
     container_name: auditor
-    # volumes:
-    #   - ./Auditor:/src/app #Para usar em desenvolvimento
+    network_mode: host
+    ports:
+      - 12345
 
   jogador:
     build: Jogador/
     container_name: jogador
+    network_mode: host
+    ports:
+      - "12345:12345"
+    depends_on:
+      - auditor 

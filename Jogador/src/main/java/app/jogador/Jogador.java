@@ -1,10 +1,13 @@
 package app.jogador;
 
 import app.IAUD;
+
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -15,21 +18,24 @@ public class Jogador {
     private static int port = 12345;
     private static final String OBJDISTNAME = "MyApp";
     private static String identificador = "";
+    private static ArrayList<String> comandos;
 
     public static void main(String[] args) {
+        if(args.length > 0) {
+           String str = args[0];
+           String[] strArr = str.split("\\s*,\\s*");
+           comandos = new ArrayList<String>(Arrays.asList(strArr));
+        }
         try
         {
             System.out.println("> Conectando no servidor "+ serverName);
             Registry registro = LocateRegistry.getRegistry(serverName, port);
             IAUD stub =  (IAUD) registro.lookup(OBJDISTNAME);
-            Scanner teclado = new Scanner(System.in);
+            String opcao = "1";
 
             boolean isRunning = true;
+            System.out.println(menuInicial());
             while (isRunning){
-                System.out.println(menuInicial());
-                System.out.print("Opção: ");
-                String opcao = teclado.nextLine();
-
                 switch (opcao) {
                     case "1":
                         if(stub.conectar()){ //verfica quantos cliente estão conectados
@@ -39,6 +45,7 @@ public class Jogador {
                         } else {
                             System.out.println("O Auditor já possui 2 Jogadores.");
                         }
+                        opcao = "2";
                         break;
                     case "2":
                         System.out.println("Encerando o progama");
@@ -57,17 +64,16 @@ public class Jogador {
     }
 
     public static String menuInicial(){
-        return "==== Bem Vindo! ====" + "\n" + "Digite 1 - Para Conectar-se a uma partida | 2 - Sair" + "\n"
-                + "========";
+        return "==== Bem Vindo! ==== \n\n\n";
     }
 
     public static String gameInfo(){
-        return "Instruções de Uso: \n" + "Digite: 'cima', 'baixo', 'esquerda' ou 'direita' para se mover no Tabuleiro \n"
-                + "O jogo encerra quando todas as Bandeiras forem capturadas! \n" + "Bom Jogo!";
+        return "Instruções de Uso: \n" + "Para se mover no Tabuleiro: 'cima', 'baixo', 'esquerda' ou 'direita' (A estratégia composta desses movimentos é enviado por cada jogador por argumentos ao iniciar o processo Jogador.) \n"
+                + "O jogo encerra quando todas as Bandeiras forem capturadas! Ou quando todas as instruções da estratégia dos jogadores acabarem! \n" + "Bom Jogo!";
     }
 
     public static String gameStart(){
-        return "Os dois jogadores foram conectados! Iniciando a partida de Capture a Bandeira. \n" + "Partida começa com o player01!!! \n\n";
+        return "Os dois jogadores foram conectados! Iniciando a partida de Capture a Bandeira. \n" + "Partida começa com o Jogador 1 (player01)!!! \n\n";
     }
 
     public static String posicaoJogadores(IAUD stub) throws RemoteException {
@@ -99,12 +105,11 @@ public class Jogador {
 
     public static void app(IAUD stub) throws RemoteException, InterruptedException {
         System.out.println(gameInfo());
-        System.out.println("Estão Conectados: " + stub.getConectados() + "Jogadores. \n" + "Sua identificação é " + identificador + ". \n" + "Esperando Outros jogadores se conectarem.");
+        System.out.println("Estão Conectados: " + stub.getConectados() + " Jogadores. \n" + "Sua identificação é " + identificador + ". \n" + "Esperando Outro jogador se conectar.");
 
-        boolean isRunning = true;
-        while (isRunning){
-            if(stub.encerrar()){
-                System.out.println("A Jogo foi Encerrado!");
+        while (true){
+            if(stub.encerrar() || comandos.size() == 0){
+                System.out.println("A Pontuação Final é: \n Jogaodor 1:" + stub.getPlayer_Pontuacao("player01") + " Pontos \n Jogador 2: " + stub.getPlayer_Pontuacao("player2") + " Pontos \n\n");
                 return;
             }
             if(stub.iniciar()){
@@ -115,46 +120,46 @@ public class Jogador {
     }
 
     public static void runningGame(IAUD stub) throws RemoteException, InterruptedException {
-        boolean isRunning = true;
-        while (isRunning){
-            if(stub.encerrar()){
-                System.out.println("A Jogo foi Encerrado! 2");
+        while (true){
+            if(stub.encerrar() || comandos.size() == 0){
+                System.out.println("A Jogo foi Encerrado!");
                 return;
             }
             if(stub.isPlayerTurn(identificador) && !stub.encerrar()){
                 playerTurn(stub);
                 changeTurn(stub);
             }
-            else{
-                System.out.println("Ainda não é o seu Turno! Esperando o movimento do outro Jogador" + "\n\n\n");
-                TimeUnit.SECONDS.sleep(5); //sleep para fazer com que a mensagem de esperar para acabar o turno do player oposto não fique sendo printada acada segundo.
-            }
         }
     }
 
     public static void playerTurn(IAUD stub) throws RemoteException, InterruptedException {
-        System.out.println("Posição Atual dos Jogadores: \n" + posicaoJogadores(stub) + "\n" + "Escolha um sentido para se movimentar.");
+        System.out.println("Posição Atual dos Jogadores: \n" + posicaoJogadores(stub) + "\n" + "Lendo o próximo sentido de sua estratégia para se movimentar.");
         System.out.println(posicaoBandeiras(stub) + "\n\n");
-        Scanner teclado = new Scanner(System.in);
+
         boolean isRunning = true;
         while (isRunning){
-            if (! stub.isPlayerTurn(identificador)) isRunning = false;
+            if (! stub.isPlayerTurn(identificador) || comandos.size() == 0) isRunning = false;
 
-            System.out.print("Opção: ");
-            String opcao = teclado.nextLine();
+            String opcao = comandos.get(0);
+            comandos.remove(0);
 
-            TimeUnit.SECONDS.sleep(2);
+            TimeUnit.SECONDS.sleep(generateRandomNumber());
 
             if(stub.movimentarJogador(identificador, opcao)) {
                 if(stub.checkForBandeira(stub.getPlayer_CoordX(identificador), stub.getPlayer_CoordY(identificador), identificador)) {
-                    System.out.println("Bandeira Capturada!");
+                    System.out.println("Bandeira Capturada! \n");
                 }
-                System.out.println("O " + identificador + " moveu com sucesso!");
+                System.out.println("O " + identificador + " moveu com sucesso! \n");
                 isRunning = false;
             } else {
-                System.out.println("Opção Inválida! Tente novamente");
+                System.out.println("Opção Inválida! (Está direção leva para fora da dimensão do Tabuleiro.) Passando a rodada para o proximo Jogador\n");
+                isRunning = false;
             }
 
         }
+    }
+
+    public static int generateRandomNumber() {
+        return (Math.random() <= 0.5) ? 1 : 2;
     }
 }

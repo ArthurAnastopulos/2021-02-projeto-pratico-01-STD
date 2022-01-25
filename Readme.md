@@ -12,7 +12,7 @@ WIP
 
 |Funcionalidade|Implentação|
 |---	|---	|
-|Aplicação Jogador| - |
-|Aplicação Auditor| - |
-|Aplicação MonitorGUI| - |
+|Aplicação Jogador| ok |
+|Aplicação Auditor| ok |
+|Aplicação MonitorGUI| ok |
 |Docker-Compose| - |
