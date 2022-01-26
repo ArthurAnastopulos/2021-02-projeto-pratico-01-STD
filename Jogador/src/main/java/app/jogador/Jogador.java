@@ -69,7 +69,7 @@ public class Jogador {
 
     public static String gameInfo(){
         return "Instruções de Uso: \n" + "Para se mover no Tabuleiro: 'cima', 'baixo', 'esquerda' ou 'direita' (A estratégia composta desses movimentos é enviado por cada jogador por argumentos ao iniciar o processo Jogador.) \n"
-                + "O jogo encerra quando todas as Bandeiras forem capturadas! Ou quando todas as instruções da estratégia dos jogadores acabarem! \n" + "Bom Jogo!";
+                + "O jogo encerra quando todas as Bandeiras (Quadrados Verdes) forem capturadas! Ou quando todas as instruções da estratégia dos jogadores acabarem! \n" + "Bom Jogo!";
     }
 
     public static String gameStart(){
@@ -77,8 +77,8 @@ public class Jogador {
     }
 
     public static String posicaoJogadores(IAUD stub) throws RemoteException {
-        return "O Jogador 1 (player01) está atualmente nas Cordenadas: [" +  stub.getPlayer_CoordX("player01") + "," + stub.getPlayer_CoordY("player01") + "] \n"
-                + "O Jogador 2 (player02) está atualmente nas Cordenadas: [" + stub.getPlayer_CoordX("player02") + "," + stub.getPlayer_CoordY("player02") + "]";
+        return "O Jogador 1 - Vermelho (player01) está atualmente nas Cordenadas: [" +  stub.getPlayer_CoordX("player01") + "," + stub.getPlayer_CoordY("player01") + "] \n"
+                + "O Jogador 2 - Azul (player02) está atualmente nas Cordenadas: [" + stub.getPlayer_CoordX("player02") + "," + stub.getPlayer_CoordY("player02") + "]";
     }
 
     public static String posicaoBandeiras(IAUD stub) throws RemoteException{
